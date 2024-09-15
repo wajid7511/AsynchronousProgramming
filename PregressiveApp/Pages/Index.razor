@@ -1,13 +1,24 @@
 ﻿@page "/"
 <PageTitle>Progressive App</PageTitle>
 
-@if (!taskProgressOne.IsRunning && !taskProgressTwo.IsRunning)
-{
-    <button class="btn btn-primary" @onclick="RunTasks">Run Tasks</button>
-    <br />
-    <br />
-}
 <div class="row">
+    <div class="col" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        @if (!taskProgressOne.IsRunning && !taskProgressTwo.IsRunning)
+        {
+            <button class="btn btn-primary" @onclick="RunTasks">Run Tasks</button>
+        }
+        <h2>Overall Progress</h2>
+        <h3>@overAllPercentage %</h3>
+        <div class="progress" style="width: 100%;">
+            <div class="progress-bar" role="progressbar" style="width:@overAllPercentage%"
+                aria-valuenow="@overAllPercentage" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
+</div>
+<br />
+<br />
+<div class="row">
+
     <div class="col">
         @if (taskProgressOne.IsRunning)
         {
@@ -52,7 +63,7 @@
         public Progress<double> Progress = new Progress<double>();
         public CancellationTokenSource CancellationSource = new();
     }
-
+    private double overAllPercentage => Math.Round((taskProgressOne.Percentage + taskProgressTwo.Percentage) / 2, 2);
     private TaskProgressDto taskProgressOne = new TaskProgressDto();
     private TaskProgressDto taskProgressTwo = new TaskProgressDto();
 
@@ -61,13 +72,14 @@
         taskProgressOne.Progress.ProgressChanged += OnTaskOneProgressUpdate;
         taskProgressTwo.Progress.ProgressChanged += OnTaskTwoProgressUpdate;
     }
-
     private void RunTasks()
     {
         taskProgressOne.IsRunning = true;
         taskProgressTwo.IsRunning = true;
         taskProgressOne.CancellationMessage = string.Empty;
         taskProgressTwo.CancellationMessage = string.Empty;
+        taskProgressOne.Percentage = 0.0;
+        taskProgressTwo.Percentage = 0.0;
 
         StateHasChanged();
 
@@ -144,7 +156,6 @@
         taskProgressOne.CancellationSource.Cancel();
         taskProgressOne.IsRunning = false;
         taskProgressOne.CancellationMessage = $"Task 1 was canceled at {taskProgressOne.Percentage}%";
-        taskProgressOne.Percentage = 0;
         StateHasChanged();
     }
 
@@ -154,7 +165,6 @@
         taskProgressTwo.CancellationSource.Cancel();
         taskProgressTwo.IsRunning = false;
         taskProgressTwo.CancellationMessage = $"Task 2 was canceled at {taskProgressTwo.Percentage}%";
-        taskProgressTwo.Percentage = 0;
         StateHasChanged();
     }
 
